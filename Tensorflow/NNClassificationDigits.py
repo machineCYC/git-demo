@@ -16,6 +16,8 @@ def add_layer(inputs, in_size, out_size, activation_function = None):
     Weights = tf.Variable(tf.random_normal([in_size, out_size]))
     biases = tf.Variable(tf.zeros([1, out_size]) + 0.1)
     Wx_plus_b = tf.matmul(inputs, Weights) + biases
+     # here to dropout
+    Wx_plus_b = tf.nn.dropout(Wx_plus_b, keep_prob)
     if activation_function is None:
         outputs = Wx_plus_b
     else:
@@ -25,16 +27,17 @@ def add_layer(inputs, in_size, out_size, activation_function = None):
 # define accuracy
 def compute_accuracy(v_xs, v_ys):
     global prediction
-    y_pre = sess.run(prediction, feed_dict = {xs:v_xs})
+    y_pre = sess.run(prediction, feed_dict = {xs:v_xs, keep_prob:1})
     correct_prediction = tf.equal(tf.argmax(y_pre, 1), tf.argmax(v_ys, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    result = sess.run(accuracy, feed_dict = {xs:v_xs, ys:v_ys})
+    result = sess.run(accuracy, feed_dict = {xs:v_xs, ys:v_ys, keep_prob:1})
     return result
 
 # parameter
 learning_rate = 0.5
 
 # define placeholder for inputs
+keep_prob = tf.placeholder(tf.float32)
 xs = tf.placeholder(tf.float32, [None, 64]) # 8x8
 ys = tf.placeholder(tf.float32, [None, 10])
 
@@ -53,9 +56,10 @@ init = tf.global_variables_initializer()
 sess.run(init)
 
 for i in range(500):
-    sess.run(train_step, feed_dict = {xs:X_train, ys:y_train})
+    sess.run(train_step, feed_dict = {xs:X_train, ys:y_train, keep_prob:0.5})
     if i%50 == 0:
-        print("cross_entropy = ", sess.run(cross_entropy, feed_dict = {xs: X_test, ys: y_test}),
+        print("cross_entropy = ", sess.run(cross_entropy, feed_dict = {xs: X_test, ys: y_test, keep_prob:1}),
               "accuracy = ", compute_accuracy(X_test, y_test))
 
 # Predict the correct rate is 0.85 
+# Add dropout and the predict the correct rate is 0.9 
