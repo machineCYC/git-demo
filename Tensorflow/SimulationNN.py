@@ -1,3 +1,10 @@
+### A simple neural network learning the Linear function
+### ---
+### 生成線性資料，並將資料增加一些雜訊，使它更像真實資料
+### 在XY座標平面上呈現資料的分布狀況
+### 更有系統性的建立簡單的神經網絡，並將loss function的結果打印出來
+### ---
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
