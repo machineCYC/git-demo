@@ -1,3 +1,11 @@
+### Use neural network to classify digits data
+### ---
+### 從 sklean dataset 讀取 digits data 
+### 建立一層且有50個神經元的神經網絡
+### 將 cross entropy 和分類精準度打印出來，預測結果為0.85
+### 對神經元增加 "dropout" 可以增加預測精準度，並將精準度提升至0.9
+### ---
+
 import tensorflow as tf
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
@@ -61,5 +69,3 @@ for i in range(500):
         print("cross_entropy = ", sess.run(cross_entropy, feed_dict = {xs: X_test, ys: y_test, keep_prob:1}),
               "accuracy = ", compute_accuracy(X_test, y_test))
 
-# Predict the correct rate is 0.85 
-# Add dropout and the predict the correct rate is 0.9 
