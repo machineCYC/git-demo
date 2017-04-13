@@ -1,3 +1,12 @@
+### Use softmax regression to classify mnist data
+### ---
+### 從 tensorflow.examples.tutorials 讀取 mnist data
+### 打印出圖片最基本的資訊
+### 將圖面上的每一個 pixel 經過 softmax regression，去辨識出最高機率的數字
+### 利用訓練資料去訓練 sofrmax regression 的參數
+### 將訓練好的參數對測試資料的 accuracy 打印出來，預測結果為0.91
+### ---
+
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import matplotlib.pyplot as plt
