@@ -1,6 +1,7 @@
 ### Titanic dataset analysis (Kaggle)
 ### ---
 ### Exploratory data analysis (EDA)
+### Feature engineering
 ### ---
 
 import pandas as pd
@@ -146,65 +147,76 @@ get_titles()
 # print(combined.head())
 
 # Processing the ages
-grouped = combined.groupby(["Sex", "Pclass", "Title"])
+# avoid data leakage from the test set
+grouped_train = combined.head(891).groupby(["Sex", "Pclass", "Title"])
+grouped_median_train = grouped_train.median()
+
+grouped_test = combined.iloc[891:].groupby(["Sex", "Pclass", "Title"])
+grouped_median_test = grouped_test.median()
+
+print(grouped_median_train)
+# print(grouped_median_test)
 
 def process_age():
     global combined
 
     # a function that fills the missing values of the Age variable
-    def fillAges(row):
+    def fillAges(row, grouped_median):
         if row["Sex"] == "female" and row["Pclass"] == 1:
             if row["Title"] == "Miss":
-                return 30
+                return grouped_median.loc["female", 1, "Miss"]["Age"]
             elif row["Title"] == "Mrs":
-                return 45
+                return grouped_median.loc["female", 1, "Mrs"]["Age"]
             elif row["Title"] == "Officer":
-                return 49
+                return grouped_median.loc["female", 1, "Officer"]["Age"]
             elif row["Title"] == "Royalty":
-                return 39
+                return grouped_median.loc["female", 1, "Royalty"]["Age"]
 
         elif row["Sex"] == "female" and row["Pclass"] == 2:
             if row["Title"] == "Miss":
-                return 20
+                return grouped_median.loc["female", 2, "Miss"]["Age"]
             elif row["Title"] == "Mrs":
-                return 30
+                return grouped_median.loc["female", 2, "Mrs"]["Age"]
 
         elif row["Sex"] == "female" and row["Pclass"] == 3:
             if row["Title"] == "Miss":
-                return 18
+                return grouped_median.loc["female", 3, "Miss"]["Age"]
             elif row["Title"] == "Mrs":
-                return 31
+                return grouped_median.loc["female", 3, "Mrs"]["Age"]
 
         elif row["Sex"] == "male" and row["Pclass"] == 1:
             if row["Title"] == "Master":
-                return 6
+                return grouped_median.loc["male", 1, "Master"]["Age"]
             elif row["Title"] == "Mr":
-                return 41.5
+                return grouped_median.loc["male", 1, "Mr"]["Age"]
             elif row["Title"] == "Officer":
-                return 52
+                return grouped_median.loc["male", 1, "Officer"]["Age"]
             elif row["Title"] == "Royalty":
-                return 40
+                return grouped_median.loc["male", 1, "Royalty"]["Age"]
 
         elif row["Sex"] == "male" and row["Pclass"] == 2:
             if row["Title"] == "Master":
-                return 2
+                return grouped_median.loc["male", 2, "Master"]["Age"]
             elif row["Title"] == "Mr":
-                return 30
+                return grouped_median.loc["male", 2, "Mr"]["Age"]
             elif row["Title"] == "Officer":
-                return 41.5
+                return grouped_median.loc["male", 2, "Officer"]["Age"]
 
         elif row["Sex"] == "male" and row["Pclass"] == 3:
             if row["Title"] == "Master":
-                return 6
+                return grouped_median.loc["male", 3, "Master"]["Age"]
             elif row["Title"] == "Mr":
-                return 26
+                return grouped_median.loc["male", 3, "Mr"]["Age"]
 
-    combined.Age = combined.apply(lambda r: fillAges(r) if np.isnan(r["Age"]) else r["Age"], axis=1)
+    combined.head(891).Age = combined.head(891).apply(lambda r: fillAges(r, grouped_median_train) if np.isnan(r["Age"])
+    else r["Age"], axis=1)
+
+    combined.iloc[891:].Age = combined.iloc[891:].apply(lambda r: fillAges(r, grouped_median_test) if np.isnan(r["Age"])
+    else r["Age"], axis=1)
 
     status("age")
 
 process_age()
-#print(combined.info())
 
 # Processing the names
 def process_names():
@@ -220,4 +232,6 @@ def process_names():
     combined.drop("Title", axis=1, inplace=True)
 
     status("names")
+
+process_names()
 
