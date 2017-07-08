@@ -1,8 +1,28 @@
 train <- read.csv("D:/Kaggle/TitanicDataset/train.csv", stringsAsFactors=FALSE)
 test <- read.csv("D:/Kaggle/TitanicDataset/test.csv")
+library(ggplot2)
 
 # structure of the dataframe (train)
 str(train)
+
+plot_Missing <- function(data_in, title = NULL){
+  # set missing value (NA) 0, others 1
+  temp_df <- as.data.frame(ifelse(is.na(data_in), 0, 1))
+  # the variable with more NA will be in front of the order
+  temp_df <- temp_df[,order(colSums(temp_df))]
+  # create a data frame from all combinations of x and y
+  data_temp <- expand.grid(list(x = 1:nrow(temp_df), y = colnames(temp_df)))
+  # extract NA in each pair (ith data, jth variable)
+  data_temp$m <- as.vector(as.matrix(temp_df))
+  # create a data frame from all combinations of x, y and m (NA's mark)
+  data_temp <- data.frame(x = unlist(data_temp$x), y = unlist(data_temp$y), m = unlist(data_temp$m))
+  # plot the figure
+  ggplot(data_temp) + geom_tile(aes(x=x, y=y, fill=factor(m))) +
+    scale_fill_manual(values=c("white", "black"), name="Missing\n(0=Yes, 1=No)") + theme_light() + ylab("") +
+    xlab("") + ggtitle(title)
+}
+plot_Missing(train[,colSums(is.na(train))>0])
+
 
 ### Feature Engineering
 test$Survived <- NA
@@ -72,3 +92,37 @@ Prediction <- predict(fit, test, type = "class")
 submit <- data.frame(PassengerId = test$PassengerId, Survived = Prediction)
 write.csv(submit, file = "D:\\Kaggle\\TitanicDataset\\Rresulttemp.csv", row.names = FALSE)
 # the scored is 0.79426
+
+### processing missing value in Age, Embarked and Fare
+
+# grow a tree on the subset of the data with the age values available, and then replace the missing value
+Agefit <- rpart(Age ~ Pclass + Sex + SibSp + Parch + Fare + Embarked + Title + FamilySize,
+                data=combi[!is.na(combi$Age),], 
+                method="anova")
+combi$Age[is.na(combi$Age)] <- predict(Agefit, combi[is.na(combi$Age),])
+
+# use "S" to replace the NA value in Embarked, "S" has the most people
+summary(factor(combi$Embarked))
+combi$Embarked[is.na(combi$Embarked)] = "S"
+combi$Embarked <- factor(combi$Embarked)
+
+# use median Fare to replace the Na value in Fare
+summary(combi$Fare)
+combi$Fare[which(is.na(combi$Fare))] <- median(combi$Fare, na.rm=TRUE)
+
+set.seed(415)
+train <- combi[1:891,]
+test <- combi[892:1309,]
+
+library(party) # Conditional inference trees
+
+# Since conditional inference trees are able to handle factors with more levels 
+# than Random Forests, so we use FamilyID insteaed of FamilyID2
+partyfit <- cforest(as.factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + 
+                      Fare + Embarked + Title + FamilySize + FamilyID,
+                    data=train, controls=cforest_unbiased(ntree=2000, mtry=3))
+# mtry: number of variables to choose
+Prediction <- predict(partyfit, test, OOB=TRUE, type = "response")
+submit <- data.frame(PassengerId = test$PassengerId, Survived = Prediction)
+write.csv(submit, file = "D:\\Kaggle\\TitanicDataset\\RRFresult.csv", row.names = FALSE)
+# the scored is 0.81340
