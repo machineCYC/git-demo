@@ -25,12 +25,6 @@ def Build_q_table(n_states, action):
     table = pd.DataFrame(np.zeros([n_states, len(action)]), columns=action)
     return table
 
-#print(Build_q_table(N_STATES, ACTION))
-
-# q_table = pd.DataFrame(np.zeros([6, 2]), columns=ACTION)
-# q_table.ix[1, 1] = 1
-# print(q_table)
-# print(q_table.ix[1, 1])
 def choose_action(state, q_table):
     state_action = q_table.ix[state,]
     if (np.random.uniform(0, 1) > EPSILON) or (state_action.all() == 0):
@@ -55,16 +49,6 @@ def get_env_feedback(S_cur, A):
             S_new = S_cur - 1
     return S_new, R
 
-# a = ["-"]*5 + ["T"]
-# print(a)
-# a[2] = "o"
-# print(a)
-# print("".join(a))
-# episode = 10
-# step_counter = 28
-# interaction = "Episode %s: total_steps= %s" % (episode + 1, step_counter)
-# print("\r{}".format(interaction))
-# print("\r{}".format(interaction), end = "")
 def update_env(S, episode, step_counter):
     env_list = ["-"] * (N_STATES-1) + ["T"]
     if S == "terminal":
@@ -107,11 +91,3 @@ def lr():
 if __name__ == "__main__":
     q_table = lr()
     print(q_table)
-
-
-
-
-
-
-
-
