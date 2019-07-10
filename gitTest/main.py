@@ -5,3 +5,7 @@ print('git test')
 
 def main():
     pass
+
+
+def main2():
+    pass
